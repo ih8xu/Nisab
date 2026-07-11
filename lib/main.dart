@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
+import 'core/utils/app_assets.dart';
 
 void main() {
-  runApp(const nisab());
+  runApp(const Nisab());
 }
-class nisab extends StatelessWidget {
-  const nisab({super.key});
+class Nisab  extends StatelessWidget {
+  const Nisab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return  MaterialApp(
+      home: Scaffold(
+        body: Container (
+          child: Image.asset(
+            Assets.alinmalogo,
+            ),
+            ),
+        ),
+      );
+
   }
 }
