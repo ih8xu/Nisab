@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'core/utils/app_assets.dart';
+import 'core/routes/app_router.dart';
 
 void main() {
   runApp(const Nisab());
@@ -9,15 +9,10 @@ class Nisab  extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
-      home: Scaffold(
-        body: Container (
-          child: Image.asset(
-            Assets.alinmalogo,
-            ),
-            ),
-        ),
-      );
+    return  MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+           routerConfig: appRouter ,
 
+      );
   }
 }
