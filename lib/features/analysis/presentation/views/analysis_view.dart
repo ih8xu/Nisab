@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 import 'package:nisab/core/utils/app_strings.dart';
+import 'package:go_router/go_router.dart';
 
 class ProcessView extends StatefulWidget {
   const ProcessView({super.key});
@@ -20,16 +21,23 @@ class _ProcessViewState extends State<ProcessView> {
   void initState() {
     super.initState();
 
-    stepTimer = Timer.periodic(
-      const Duration(seconds: 2),
-      (timer) {
-        if (!mounted) return;
+    stepTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) return;
 
+      if (currentStep < AppStrings.processSteps.length - 1) {
         setState(() {
-          currentStep = (currentStep + 1) % AppStrings.processSteps.length;
+          currentStep++;
         });
-      },
-    );
+      } else {
+        timer.cancel();
+
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            context.go('/hawl');
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -40,8 +48,7 @@ class _ProcessViewState extends State<ProcessView> {
 
   @override
   Widget build(BuildContext context) {
-    final progress =
-        (currentStep + 1) / AppStrings.processSteps.length;
+    final progress = (currentStep + 1) / AppStrings.processSteps.length;
 
     return Scaffold(
       body: SafeArea(
@@ -123,8 +130,7 @@ class _ProcessViewState extends State<ProcessView> {
                               value: progress,
                               strokeWidth: 5,
                               backgroundColor: Colors.white24,
-                              valueColor:
-                                  const AlwaysStoppedAnimation<Color>(
+                              valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppColors.primary,
                               ),
                             ),
@@ -206,10 +212,7 @@ class _ProcessViewState extends State<ProcessView> {
 }
 
 class _ProcessInfoRow extends StatelessWidget {
-  const _ProcessInfoRow({
-    required this.icon,
-    required this.text,
-  });
+  const _ProcessInfoRow({required this.icon, required this.text});
 
   final IconData icon;
   final String text;
@@ -225,20 +228,10 @@ class _ProcessInfoRow extends StatelessWidget {
             color: AppColors.successBackground,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: AppColors.success,
-            size: 20,
-          ),
+          child: Icon(icon, color: AppColors.success, size: 20),
         ),
         const SizedBox(width: 11),
-        Text(
-          text,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-          ),
-        ),
+        Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14)),
       ],
     );
   }
