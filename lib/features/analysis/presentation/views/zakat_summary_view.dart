@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
 class ZakatSummaryView extends StatelessWidget {
   const ZakatSummaryView({super.key});
@@ -147,7 +148,7 @@ class ZakatSummaryView extends StatelessWidget {
 
               TextButton(
                 onPressed: () {
-                  // صفحة مساعد نصاب لاحقاً
+                  context.push('/assistant');
                 },
 
                 child: const Text(
@@ -168,7 +169,7 @@ class ZakatSummaryView extends StatelessWidget {
 
                 child: ElevatedButton(
                   onPressed: () {
-                    // صفحة الدفع لاحقاً
+                    context.push('/payment-method');
                   },
 
                   style: ElevatedButton.styleFrom(
