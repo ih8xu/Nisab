@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 
@@ -73,9 +74,9 @@ class HawlView extends StatelessWidget {
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(22),
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       "تفاصيل الزكاة",
                       style: TextStyle(
@@ -118,7 +119,9 @@ class HawlView extends StatelessWidget {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.go('/other-assets');
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
