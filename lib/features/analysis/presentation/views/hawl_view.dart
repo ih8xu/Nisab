@@ -139,6 +139,32 @@ class HawlView extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(height: 14),
+
+              SizedBox(
+                width: 180,
+                height: 42,
+                child: OutlinedButton(
+                  onPressed: () {
+                    context.go('/zakat-summary');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primary, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    "ادفع الآن",
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
             ],
           ),

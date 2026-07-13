@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 import 'package:nisab/core/utils/app_strings.dart';
+import 'package:go_router/go_router.dart';
 
 class OtherAssetsView extends StatefulWidget {
   const OtherAssetsView({super.key});
@@ -50,10 +51,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                 SizedBox(
                   width: 180,
                   height: 90,
-                  child: Image.asset(
-                    Assets.alinmalogo,
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset(Assets.alinmalogo, fit: BoxFit.contain),
                 ),
                 const SizedBox(height: 10),
                 const Text(
@@ -186,7 +184,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: totalAssets == 0 ? null : () {},
+                    onPressed: () {
+                      context.go('/zakat-summary');
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       disabledBackgroundColor: AppColors.card,
@@ -230,12 +230,10 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
           builder: (context, setSheetState) {
             final enteredWeight =
                 double.tryParse(weightController.text.replaceAll(',', '.')) ??
-                    0;
+                0;
 
-            final calculatedNetWeight =
-                enteredWeight * temporaryCarat / 24;
-            final calculatedGoldValue =
-                calculatedNetWeight * goldGramPrice24;
+            final calculatedNetWeight = enteredWeight * temporaryCarat / 24;
+            final calculatedGoldValue = calculatedNetWeight * goldGramPrice24;
             final calculatedZakat = calculatedGoldValue * 0.025;
             final isBelowNisab = calculatedNetWeight < 85;
 
@@ -254,10 +252,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                   const SizedBox(height: 4),
                   const Text(
                     'النصاب: 85 جم من الذهب عيار 24',
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 22),
 
@@ -329,10 +324,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   const Text(
                     'يتم تحديث السعر تلقائيًا من مصدر الأسعار.',
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: Colors.white54, fontSize: 11),
                   ),
 
                   const SizedBox(height: 16),
@@ -415,7 +407,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
           builder: (context, setSheetState) {
             final enteredWeight =
                 double.tryParse(weightController.text.replaceAll(',', '.')) ??
-                    0;
+                0;
 
             final value = enteredWeight * silverGramPrice;
             final zakat = value * 0.025;
@@ -626,10 +618,7 @@ class _AssetCard extends StatelessWidget {
                 color: AppColors.primary.withOpacity(.18),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-              ),
+              child: Icon(icon, color: AppColors.primary),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -647,10 +636,7 @@ class _AssetCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),
@@ -666,10 +652,7 @@ class _AssetCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 5),
-                const Icon(
-                  Icons.chevron_left_rounded,
-                  color: Colors.white54,
-                ),
+                const Icon(Icons.chevron_left_rounded, color: Colors.white54),
               ],
             ),
           ],
@@ -696,9 +679,7 @@ class _FormSheet extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
           decoration: const BoxDecoration(
             color: AppColors.background,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(30),
-            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
           child: SafeArea(
             top: false,
@@ -767,11 +748,7 @@ class _InputBox extends StatelessWidget {
                 ? const TextInputType.numberWithOptions(decimal: true)
                 : TextInputType.text,
             inputFormatters: isNumber
-                ? [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'[0-9.,]'),
-                    ),
-                  ]
+                ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))]
                 : null,
             style: const TextStyle(
               color: AppColors.white,
@@ -824,10 +801,7 @@ class _AutomaticBox extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
           ),
           Text(
@@ -845,10 +819,7 @@ class _AutomaticBox extends StatelessWidget {
 }
 
 class _SaveButton extends StatelessWidget {
-  const _SaveButton({
-    required this.text,
-    required this.onPressed,
-  });
+  const _SaveButton({required this.text, required this.onPressed});
 
   final String text;
   final VoidCallback? onPressed;
@@ -872,10 +843,7 @@ class _SaveButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-          ),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -899,10 +867,7 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
         ),
         const Spacer(),
         Text(
