@@ -46,4 +46,32 @@ abstract class AppStrings {
   static const processSecurity = 'بياناتك محمية ومشفّرة';
   static const processPrivacy = 'نستخدم بياناتك للاحتساب فقط';
   static const processAccuracy = 'احتساب واضح ودقيق';
+  static const otherAssetsTitle = 'الأصول الزكوية الأخرى';
+  static const otherAssetsSubtitle =
+      'أضيفي أصولك الأخرى ليتم احتسابها ضمن الزكاة المستحقة.';
+
+  static const goldTitle = 'الذهب';
+  static const silverTitle = 'الفضة';
+  static const fundsTitle = 'الصناديق الاستثمارية';
+
+  static const goldHint = 'اختاري العيار ثم أدخلي وزن الذهب';
+  static const silverHint = 'أدخلي وزن الفضة فقط';
+  static const fundsHint = 'أضيفي بيانات الصندوق الاستثماري';
+
+  static const add = 'إضافة';
+  static const goldWeight = 'وزن الذهب';
+  static const netGoldWeight = 'الوزن الصافي للذهب (عيار 24)';
+  static const goldGramPrice = 'سعر غرام الذهب الحالي (عيار 24)';
+  static const silverWeight = 'وزن الفضة';
+  static const silverGramPrice = 'سعر غرام الفضة الحالي';
+
+  static const fundShortName = 'الاسم المختصر للصندوق';
+  static const fundUnits = 'عدد الوحدات';
+  static const fundUnitPrice = 'سعر الوحدة';
+
+  static const totalAssets = 'إجمالي الأصول الزكوية';
+  static const zakatDue = 'الزكاة المستحقة';
+  static const completePayment = 'التالي: إكمال الدفع';
+  
 }
+
