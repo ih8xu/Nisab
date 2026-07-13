@@ -6,7 +6,7 @@ abstract class AppColors {
   // =========================
 
   /// الخلفية الرئيسية
-  static const Color background = Color(0xFF06263B);
+  static const Color background = Color(0xFF002235);
 
   /// خلفية البطاقات
   static const Color card = Color(0xFF0B3D5C);
