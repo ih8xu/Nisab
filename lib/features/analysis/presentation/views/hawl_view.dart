@@ -18,8 +18,24 @@ class HawlView extends StatelessWidget {
 
               const SizedBox(height: 30),
 
+              Container(
+                width: 90,
+                height: 90,
+                decoration: const BoxDecoration(
+                  color: AppColors.successBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: AppColors.success,
+                  size: 55,
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
               const Text(
-                "تم اكتمال الحول",
+                "تم بلوغ النصاب",
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 28,
@@ -27,26 +43,28 @@ class HawlView extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.check_circle, color: Colors.orange, size: 18),
-
-                  SizedBox(width: 8),
-
-                  Flexible(
-                    child: Text(
-                      "حددنا لك أول يوم بلغ فيه رصيدك النصاب خلال حولك الحالي.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Text(
+                  "الرصيد الزكوي: 57,250 ريال",
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
+                ),
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 35),
 
               Container(
                 width: double.infinity,
@@ -57,183 +75,96 @@ class HawlView extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "بداية الحول",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    const Text(
-                      "21 محرم 1448 هـ",
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    const Text(
-                      "بدء احتساب الحول من هذا التاريخ.",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Column(
-                  children: [
-                    _timelineItem(
-                      title: "لم يصل رصيدك إلى النصاب بعد",
-                      date: "1 محرم 1448 هـ",
-                      amount: "30,000 ريال",
-                      isDone: false,
-                    ),
-
-                    _line(),
-
-                    _timelineItem(
-                      title: "لم يصل رصيدك إلى النصاب بعد",
-                      date: "10 محرم 1448 هـ",
-                      amount: "45,000 ريال",
-                      isDone: false,
-                    ),
-
-                    _line(),
-
-                    _timelineItem(
-                      title: "بلغ رصيدك النصاب وبدأ احتساب الحول",
-                      date: "21 محرم 1448 هـ",
-                      amount: "57,250 ريال",
-                      isDone: true,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
+                  children: const [
+                    Text(
                       "تفاصيل الزكاة",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    const Text(
-                      "الرصيد الزكوي",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    const Text(
-                      "57,250 ريال",
-                      style: TextStyle(
-                        color: AppColors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    const Text(
-                      "الزكاة المستحقة",
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    const Text(
-                      "1,431.25 ريال",
                       style: TextStyle(
                         color: AppColors.primary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
+                    SizedBox(height: 20),
+
+                    _BuildInfoRow(
+                      icon: Icons.calendar_month_rounded,
+                      title: "بدء احتساب الحول",
+                      value: "الأربعاء\n21 محرم 1448 هـ\n15 يوليو 2026 م",
+                    ),
+
+                    Divider(color: Colors.white24, height: 35),
+
+                    _BuildInfoRow(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: "الرصيد الزكوي",
+                      value: "57,250 ريال",
+                    ),
+
+                    Divider(color: Colors.white24, height: 35),
+
+                    _BuildInfoRow(
+                      icon: Icons.volunteer_activism_outlined,
+                      title: "الزكاة المستحقة",
+                      value: "غير مستحقة حالياً",
+                    ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 30),
 
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-
-                  onPressed: () {},
-
                   child: const Text(
-                    "التالي",
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    "إضافة أصول زكوية أخرى",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  static Widget _timelineItem({
-    required String title,
-    required String date,
-    required String amount,
-    required bool isDone,
-  }) {
+class _BuildInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _BuildInfoRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          isDone ? Icons.check_circle : Icons.radio_button_unchecked,
+        Icon(icon, color: AppColors.primary, size: 28),
 
-          color: isDone ? AppColors.success : Colors.white38,
-
-          size: 24,
-        ),
-
-        const SizedBox(width: 14),
+        const SizedBox(width: 15),
 
         Expanded(
           child: Column(
@@ -241,31 +172,24 @@ class HawlView extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: AppColors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
 
-              const SizedBox(height: 5),
+              const SizedBox(height: 6),
 
-              Text(date, style: const TextStyle(color: Colors.white70)),
-
-              Text(amount, style: const TextStyle(color: Colors.white70)),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: AppColors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  height: 1.5,
+                ),
+              ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  static Widget _line() {
-    return Container(
-      height: 35,
-      width: 2,
-      margin: const EdgeInsets.only(left: 11),
-      color: Colors.white24,
     );
   }
 }
