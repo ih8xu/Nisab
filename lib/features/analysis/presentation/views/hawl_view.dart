@@ -180,7 +180,6 @@ class _BuildInfoRow extends StatelessWidget {
   final String value;
 
   const _BuildInfoRow({
-    super.key,
     required this.icon,
     required this.title,
     required this.value,
