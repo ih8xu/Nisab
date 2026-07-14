@@ -1,200 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nisab/core/utils/app_colors.dart';
+import '../../../../core/state/app_state.dart';
+import '../../../../core/utils/app_colors.dart';
 
 class PaymentMethodView extends StatefulWidget {
   const PaymentMethodView({super.key});
-
   @override
   State<PaymentMethodView> createState() => _PaymentMethodViewState();
 }
 
 class _PaymentMethodViewState extends State<PaymentMethodView> {
-  int? selectedMethod;
-
+  String? method, error;
+  bool loading = false;
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
         appBar: AppBar(
+          title: const Text('إتمام الدفع'),
           backgroundColor: AppColors.background,
           foregroundColor: Colors.white,
-          centerTitle: true,
-          title: const Text(
-            'إتمام الدفع',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
         ),
-        body: SingleChildScrollView(
+        body: ListView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Text(
-                'كيف تودين إخراج زكاتك؟',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 27,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'اختار الطريقة المناسبة لإتمام زكاتك.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 15),
-              ),
-              const SizedBox(height: 30),
-
-              _paymentOption(
-                index: 0,
-                title: 'الدفع عبر زكاتي',
-                subtitle: 'إتمام الدفع من خلال منصة زكاتي.',
-                child: Image.asset(
-                  'assets/images/Screenshot 2026-07-12 190559.png',
-                  width: 85,
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              const SizedBox(height: 15),
-
-              _paymentOption(
-                index: 1,
-                title: 'سأدفع بنفسي',
-                subtitle: 'سأقوم بإخراج مبلغ الزكاة بالطريقة التي أختارها.',
-                child: const Icon(
-                  Icons.account_balance_wallet_rounded,
-                  size: 40,
-                  color: AppColors.primary,
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(17),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.lock_rounded, color: AppColors.primary),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'معلوماتك وبياناتك المالية محفوظة وآمنة.',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: selectedMethod == null
-                      ? null
-                      : () => context.go('/payment-success'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    disabledBackgroundColor: AppColors.card,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                  child: const Text(
-                    'تأكيد إتمام الدفع',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _paymentOption({
-    required int index,
-    required String title,
-    required String subtitle,
-    required Widget child,
-  }) {
-    final isSelected = selectedMethod == index;
-
-    return InkWell(
-      onTap: () => setState(() => selectedMethod = index),
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF104864) : AppColors.card,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Row(
           children: [
-            Container(
-              width: 70,
-              height: 70,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
+            const Text(
+              'اختر طريقة إخراج الزكاة',
+              style: TextStyle(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: child,
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            Icon(
-              isSelected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: isSelected ? AppColors.primary : Colors.white38,
+            const SizedBox(height: 20),
+            _option('zakati', 'الدفع عبر زكاتي'),
+            _option('self', 'سأدفع بنفسي'),
+            const SizedBox(height: 18),
+            const Text(
+              'هذه العملية محاكاة داخلية لتسجيل اختيارك فقط ولا تنفذ تحويلاً مالياً حقيقياً.',
+              style: TextStyle(color: Colors.orange, height: 1.5),
+            ),
+            if (error != null)
+              Text(error!, style: const TextStyle(color: Colors.redAccent)),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: method == null || loading ? null : _pay,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: loading
+                  ? const CircularProgressIndicator()
+                  : const Text('تسجيل إتمام الدفع'),
             ),
           ],
         ),
       ),
     );
   }
+
+  Future<void> _pay() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+    try {
+      await AppScope.read(context).pay(method!);
+      if (mounted) context.go('/payment-success');
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Widget _option(String value, String title) => Card(
+    color: AppColors.card,
+    child: ListTile(
+      onTap: () => setState(() => method = value),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      trailing: Icon(
+        method == value ? Icons.radio_button_checked : Icons.radio_button_off,
+        color: method == value ? AppColors.primary : Colors.white54,
+      ),
+    ),
+  );
 }

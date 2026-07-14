@@ -1,231 +1,102 @@
 import 'package:flutter/material.dart';
-import 'package:nisab/core/utils/app_assets.dart';
-import 'package:nisab/core/utils/app_colors.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/state/app_state.dart';
+import '../../../../core/utils/app_colors.dart';
 
-class ZakatSummaryView extends StatelessWidget {
+class ZakatSummaryView extends StatefulWidget {
   const ZakatSummaryView({super.key});
+  @override
+  State<ZakatSummaryView> createState() => _ZakatSummaryViewState();
+}
+
+class _ZakatSummaryViewState extends State<ZakatSummaryView> {
+  String? error;
+  bool requested = false;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!requested && AppScope.of(context).data.summary == null) {
+      requested = true;
+      Future.microtask(_load);
+    }
+  }
+
+  Future<void> _load() async {
+    try {
+      await AppScope.read(context).loadSummary();
+      if (mounted) setState(() => error = null);
+    } catch (e) {
+      if (mounted) setState(() => error = e.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-
-          child: Column(
+    final summary = AppScope.of(context).data.summary;
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('ملخص الزكاة'),
+          backgroundColor: AppColors.background,
+          foregroundColor: Colors.white,
+        ),
+        body: RefreshIndicator(
+          onRefresh: _load,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
             children: [
-              SizedBox(width: 220, child: Image.asset(Assets.alinmalogo)),
-
-              const SizedBox(height: 30),
-
-              const Text(
-                "ملخص الزكاة",
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+              if (error != null)
+                _card(error!)
+              else if (summary == null)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                _card(
+                  'إجمالي الأصول: ${summary.totalAssets.toStringAsFixed(2)} ر.س',
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 10,
+                _card(
+                  'قيمة النصاب: ${summary.nisabValue.toStringAsFixed(2)} ر.س',
                 ),
-
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(30),
+                _card(
+                  summary.reachedNisab
+                      ? 'تم بلوغ النصاب'
+                      : 'لم يبلغ المال النصاب',
                 ),
-
-                child: const Text(
-                  "✓ شامل لجميع أصولك الزكوية",
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                _card(summary.hawlCompleted ? 'اكتمل الحول' : 'لم يكتمل الحول'),
+                _card(
+                  'الزكاة المستحقة: ${summary.totalZakat.toStringAsFixed(2)} ر.س',
+                  primary: true,
                 ),
-              ),
-
-              const SizedBox(height: 18),
-
-              const Text(
-                "تم احتساب الزكاة بناءً على جميع الأصول التي قمت بإضافتها.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  height: 1.5,
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-
-                  children: [
-                    const Text(
-                      "تفاصيل الأصول الزكوية",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    _AssetRow(title: "المال النقدي", amount: "0.00 ريال"),
-
-                    const Divider(color: Colors.white24, height: 30),
-
-                    _AssetRow(title: "الذهب", amount: "0.00 ريال"),
-
-                    const Divider(color: Colors.white24, height: 30),
-
-                    _AssetRow(title: "الأسهم", amount: "0.00 ريال"),
-
-                    const Divider(color: Colors.white24, height: 30),
-
-                    _AssetRow(title: "عروض التجارة", amount: "0.00 ريال"),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-
-                child: Column(
-                  children: [
-                    const Text(
-                      "إجمالي الزكاة المستحقة",
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    const Text(
-                      "0.00 ريال",
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const Text(
-                      "ريال",
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 25),
-
-              TextButton(
-                onPressed: () {
-                  context.push('/assistant');
-                },
-
-                child: const Text(
-                  "لديك سؤال عن النتيجة؟ اسأل مساعد نصاب ←",
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 35),
-
-              SizedBox(
-                width: double.infinity,
-                height: 58,
-
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.push('/payment-method');
-                  },
-
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: summary.totalZakat > 0
+                      ? () => context.go('/payment-method')
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
                   ),
-
-                  child: const Text(
-                    "ادفع الزكاة الآن",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: const Text('إكمال الدفع'),
                 ),
-              ),
-
-              const SizedBox(height: 25),
+              ],
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _AssetRow extends StatelessWidget {
-  final String title;
-  final String amount;
-
-  const _AssetRow({required this.title, required this.amount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-      children: [
-        Text(
-          title,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
+  Widget _card(String text, {bool primary = false}) => Card(
+    color: AppColors.card,
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: primary ? AppColors.primary : Colors.white,
+          fontSize: primary ? 21 : 17,
+          fontWeight: FontWeight.bold,
         ),
-
-        Text(
-          amount,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ),
+  );
 }

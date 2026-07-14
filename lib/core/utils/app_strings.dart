@@ -74,4 +74,3 @@ abstract class AppStrings {
   static const completePayment = 'التالي: إكمال الدفع';
   
 }
-
