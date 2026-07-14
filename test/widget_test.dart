@@ -1,30 +1,41 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:nisab/main.dart';
+import 'package:nisab/core/models/models.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const Nisab());
+  test('parses backend summary and typed assets', () {
+    final summary = SummaryModel.fromJson({
+      'total_assets': 41000,
+      'nisab_value': 34000.5,
+      'reached_nisab': true,
+      'hawl_completed': true,
+      'total_zakat': 1025,
+      'assets': [
+        {
+          'id': 1,
+          'asset_type': 'gold',
+          'name': null,
+          'weight': 100,
+          'karat': 24,
+          'purity': null,
+          'units': null,
+          'unit_price': null,
+          'total_value': 40000,
+          'zakat_amount': 1000,
+        },
+      ],
+    });
+    expect(summary.totalZakat, 1025);
+    expect(summary.assets.single.type, 'gold');
+    expect(summary.assets.single.weight, 100);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('parses fallback price marker', () {
+    final price = PriceModel.fromJson({
+      'gold_24k': 432,
+      'silver_999': 5,
+      'is_fallback': true,
+    });
+    expect(price.isFallback, isTrue);
+    expect(price.gold, 432);
   });
 }

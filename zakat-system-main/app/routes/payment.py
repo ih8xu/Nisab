@@ -1,93 +1,29 @@
-from datetime import datetime
-import random
-
-from fastapi import APIRouter, HTTPException, status
-
-from app.database import SessionLocal
-from app.models import Payment
+import secrets
+from datetime import datetime, timezone
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import Payment, User
+from app.schemas import PaymentRequest
+from app.security import get_current_user
+from app.services import owned_session
 
 router = APIRouter()
-
+def output(row):
+    return {"id": row.id, "session_id": row.session_id, "amount": row.amount, "method": row.method, "status": row.status, "transaction_id": row.transaction_id, "payment_date": row.payment_date, "currency": "SAR", "simulation": True, "notice": "سجل محاكاة داخلية ولا يثبت تحويلاً مالياً حقيقياً"}
 
 @router.post("/pay")
-def pay_zakat(
-    cash: float = 0,
-    gold: float = 0,
-    silver: float = 0
-):
-    if cash < 0 or gold < 0 or silver < 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="مبالغ الزكاة لا يمكن أن تكون سالبة."
-        )
-
-    total = cash + gold + silver
-
-    if total <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="إجمالي مبلغ الزكاة يجب أن يكون أكبر من الصفر."
-        )
-
-    رقم_العملية = (
-        f"ZAKAT-"
-        f"{datetime.today().strftime('%Y%m%d')}-"
-        f"{random.randint(1000,9999)}"
-    )
-
-    db = SessionLocal()
-
-    try:
-        new_payment = Payment(
-            user_id="demo_user",
-            amount=total,
-            status="نجاح",
-            transaction_id=رقم_العملية
-        )
-
-        db.add(new_payment)
-        db.commit()
-        db.refresh(new_payment)
-
-    finally:
-        db.close()
-
-    return {
-        "الحالة": "نجاح",
-        "حالة الدفع": "تم الدفع بنجاح",
-        "المبلغ": round(total, 2),
-        "رقم العملية": رقم_العملية,
-        "تاريخ الدفع": datetime.today().strftime("%d.%m.%Y"),
-        "العملة": "ريال سعودي",
-        "الرسالة": "تم سداد الزكاة بنجاح."
-    }
-
+def pay(data: PaymentRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    session = owned_session(db, data.session_id, user.id)
+    if session.total_zakat <= 0: raise HTTPException(422, detail={"code": "NOTHING_DUE", "message": "لا يوجد مبلغ زكاة مستحق"})
+    row = Payment(session_id=session.id, user_id=user.id, amount=session.total_zakat, method=data.method, status="paid", transaction_id=f"SIM-{datetime.now(timezone.utc):%Y%m%d}-{secrets.token_hex(4).upper()}")
+    session.status = "paid"; db.add(row); db.commit(); db.refresh(row)
+    return output(row)
 
 @router.get("/completed")
-def completed():
-
-    db = SessionLocal()
-
-    try:
-        last_payment = (
-            db.query(Payment)
-            .order_by(Payment.id.desc())
-            .first()
-        )
-
-        if last_payment is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="لا توجد عملية دفع حتى الآن."
-            )
-
-        return {
-            "الحالة": "مكتملة",
-            "رقم العملية": last_payment.transaction_id,
-            "المبلغ": round(last_payment.amount, 2),
-            "العملة": "ريال سعودي",
-            "الرسالة": "تمت عملية دفع الزكاة بنجاح."
-        }
-
-    finally:
-        db.close()
+def completed(session_id: int | None = None, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    query = db.query(Payment).filter(Payment.user_id == user.id)
+    if session_id is not None: query = query.filter(Payment.session_id == session_id)
+    row = query.order_by(Payment.id.desc()).first()
+    if not row: raise HTTPException(404, detail={"code": "PAYMENT_NOT_FOUND", "message": "لا يوجد سجل دفع"})
+    return output(row)

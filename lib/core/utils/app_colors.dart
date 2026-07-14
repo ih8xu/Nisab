@@ -34,4 +34,3 @@ abstract class AppColors {
 static const Color success = Color(0xFF43A047);
   /// لون خلفية دائرة الصح
 static const Color successBackground = Color(0xFFE8F5E9);}
-

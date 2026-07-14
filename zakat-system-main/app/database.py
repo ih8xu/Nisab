@@ -1,26 +1,21 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-# مسار قاعدة بيانات SQLite المحلي
-DATABASE_URL = "sqlite:///./zakat.db"
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# إنشاء محرك قاعدة البيانات مع السماح بالـ Multi-threading لـ FastAPI
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./zakat.db")
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {})
 
-# إنشاء الجلسات المحلية للتعامل مع البيانات
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
+    def _enable_foreign_keys(dbapi_connection, _):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
-# الفئة الأساسية لإنشاء الـ Models لاحقاً
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# 💡 الإضافة الاحترافية (محقن التبعية لفتح وإغلاق الجلسات تلقائياً)
 def get_db():
     db = SessionLocal()
     try:
