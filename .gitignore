@@ -46,7 +46,30 @@ app.*.map.json
 
 # Backend local state and secrets
 .env
+.env.*
+!.env.example
+!**/.env.example
 .venv/
+venv/
 *.db
+*.sqlite
+*.sqlite3
 __pycache__/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Internal agent and local assistant instructions
+.agents/
+.codex/
+
+# Private keys and signing credentials
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+android/key.properties
