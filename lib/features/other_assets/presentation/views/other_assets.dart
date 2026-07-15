@@ -252,10 +252,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
   }
 
   Future<void> _showGoldForm() async {
-    final weightController = TextEditingController(
-      text: goldWeight == 0 ? '' : goldWeight.toString(),
-    );
-
+    double enteredWeight = goldWeight;
     int temporaryCarat = selectedCarat;
 
     final savedAsset = await showModalBottomSheet<MetalAsset>(
@@ -265,10 +262,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final enteredWeight =
-                double.tryParse(weightController.text.replaceAll(',', '.')) ??
-                0;
-
             final calculatedNetWeight = enteredWeight * temporaryCarat / 24;
             final calculatedGoldValue = calculatedNetWeight * goldGramPrice24;
             final calculatedZakat = calculatedGoldValue * 0.025;
@@ -344,10 +337,15 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                   const SizedBox(height: 20),
 
                   _InputBox(
-                    controller: weightController,
+                    initialValue: goldWeight == 0 ? '' : goldWeight.toString(),
                     label: AppStrings.goldWeight,
                     suffix: 'جم',
-                    onChanged: (_) => setSheetState(() {}),
+                    onChanged: (value) {
+                      setSheetState(() {
+                        enteredWeight =
+                            double.tryParse(value.replaceAll(',', '.')) ?? 0;
+                      });
+                    },
                   ),
 
                   const SizedBox(height: 16),
@@ -436,7 +434,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       },
     );
 
-    weightController.dispose();
     if (!mounted || savedAsset == null) return;
     setState(() {
       selectedCarat = savedAsset.karat ?? selectedCarat;
@@ -446,9 +443,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
   }
 
   Future<void> _showSilverForm() async {
-    final weightController = TextEditingController(
-      text: silverWeight == 0 ? '' : silverWeight.toString(),
-    );
+    double enteredWeight = silverWeight;
 
     final savedAsset = await showModalBottomSheet<MetalAsset>(
       context: context,
@@ -457,10 +452,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final enteredWeight =
-                double.tryParse(weightController.text.replaceAll(',', '.')) ??
-                0;
-
             final value = enteredWeight * silverGramPrice;
             final zakat = value * 0.025;
 
@@ -479,10 +470,17 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                   const SizedBox(height: 22),
 
                   _InputBox(
-                    controller: weightController,
+                    initialValue: silverWeight == 0
+                        ? ''
+                        : silverWeight.toString(),
                     label: AppStrings.silverWeight,
                     suffix: 'جم',
-                    onChanged: (_) => setSheetState(() {}),
+                    onChanged: (value) {
+                      setSheetState(() {
+                        enteredWeight =
+                            double.tryParse(value.replaceAll(',', '.')) ?? 0;
+                      });
+                    },
                   ),
 
                   const SizedBox(height: 16),
@@ -526,7 +524,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       },
     );
 
-    weightController.dispose();
     if (!mounted || savedAsset == null) return;
     setState(() {
       silverWeight = savedAsset.weight;
@@ -535,9 +532,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
   }
 
   Future<void> _showFundForm() async {
-    final nameController = TextEditingController();
-    final unitsController = TextEditingController();
-    final priceController = TextEditingController();
+    String fundName = '';
+    double units = 0;
+    double unitPrice = 0;
 
     final savedFund = await showModalBottomSheet<FundAsset>(
       context: context,
@@ -546,12 +543,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final units =
-                double.tryParse(unitsController.text.replaceAll(',', '.')) ?? 0;
-
-            final unitPrice =
-                double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0;
-
             final value = units * unitPrice;
 
             return _FormSheet(
@@ -569,27 +560,36 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                   const SizedBox(height: 22),
 
                   _InputBox(
-                    controller: nameController,
                     label: AppStrings.fundShortName,
-                    onChanged: (_) => setSheetState(() {}),
+                    onChanged: (value) {
+                      setSheetState(() => fundName = value.trim());
+                    },
                     isNumber: false,
                   ),
 
                   const SizedBox(height: 12),
 
                   _InputBox(
-                    controller: unitsController,
                     label: AppStrings.fundUnits,
-                    onChanged: (_) => setSheetState(() {}),
+                    onChanged: (value) {
+                      setSheetState(() {
+                        units =
+                            double.tryParse(value.replaceAll(',', '.')) ?? 0;
+                      });
+                    },
                   ),
 
                   const SizedBox(height: 12),
 
                   _InputBox(
-                    controller: priceController,
                     label: AppStrings.fundUnitPrice,
                     suffix: 'ريال',
-                    onChanged: (_) => setSheetState(() {}),
+                    onChanged: (value) {
+                      setSheetState(() {
+                        unitPrice =
+                            double.tryParse(value.replaceAll(',', '.')) ?? 0;
+                      });
+                    },
                   ),
 
                   const SizedBox(height: 16),
@@ -603,16 +603,13 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   _SaveButton(
                     text: 'حفظ الصندوق',
-                    onPressed:
-                        nameController.text.trim().isEmpty ||
-                            units <= 0 ||
-                            unitPrice <= 0
+                    onPressed: fundName.isEmpty || units <= 0 || unitPrice <= 0
                         ? null
                         : () async {
                             try {
                               final saved = await ZakatApiService.instance
                                   .addFund(
-                                    name: nameController.text.trim(),
+                                    name: fundName,
                                     units: units,
                                     unitPrice: unitPrice,
                                   );
@@ -632,9 +629,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       },
     );
 
-    nameController.dispose();
-    unitsController.dispose();
-    priceController.dispose();
     if (!mounted || savedFund == null) return;
     setState(() => funds.add(savedFund));
   }
@@ -766,15 +760,15 @@ class _FormSheet extends StatelessWidget {
 
 class _InputBox extends StatelessWidget {
   const _InputBox({
-    required this.controller,
     required this.label,
     required this.onChanged,
+    this.initialValue,
     this.suffix,
     this.isNumber = true,
   });
 
-  final TextEditingController controller;
   final String label;
+  final String? initialValue;
   final String? suffix;
   final bool isNumber;
   final ValueChanged<String> onChanged;
@@ -799,8 +793,8 @@ class _InputBox extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.white12),
           ),
-          child: TextField(
-            controller: controller,
+          child: TextFormField(
+            initialValue: initialValue,
             onChanged: onChanged,
             keyboardType: isNumber
                 ? const TextInputType.numberWithOptions(decimal: true)
