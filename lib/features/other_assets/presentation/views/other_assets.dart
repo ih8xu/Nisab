@@ -55,9 +55,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
   void _showError(Object error) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error.toString())),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error.toString())));
   }
 
   double get netGoldWeight => goldWeight * selectedCarat / 24;
@@ -258,7 +258,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
     int temporaryCarat = selectedCarat;
 
-    await showModalBottomSheet(
+    final savedAsset = await showModalBottomSheet<MetalAsset>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -420,13 +420,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                                     weight: enteredWeight,
                                     karat: temporaryCarat,
                                   );
-                              if (!mounted) return;
-                              setState(() {
-                                selectedCarat = saved.karat ?? temporaryCarat;
-                                goldWeight = saved.weight;
-                                goldGramPrice24 = saved.pricePerGram;
-                              });
-                              if (context.mounted) Navigator.pop(context);
+                              if (context.mounted) {
+                                Navigator.pop(context, saved);
+                              }
                             } catch (error) {
                               _showError(error);
                             }
@@ -441,6 +437,12 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
     );
 
     weightController.dispose();
+    if (!mounted || savedAsset == null) return;
+    setState(() {
+      selectedCarat = savedAsset.karat ?? selectedCarat;
+      goldWeight = savedAsset.weight;
+      goldGramPrice24 = savedAsset.pricePerGram;
+    });
   }
 
   Future<void> _showSilverForm() async {
@@ -448,7 +450,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
       text: silverWeight == 0 ? '' : silverWeight.toString(),
     );
 
-    await showModalBottomSheet(
+    final savedAsset = await showModalBottomSheet<MetalAsset>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -508,12 +510,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                             try {
                               final saved = await ZakatApiService.instance
                                   .saveSilver(weight: enteredWeight);
-                              if (!mounted) return;
-                              setState(() {
-                                silverWeight = saved.weight;
-                                silverGramPrice = saved.pricePerGram;
-                              });
-                              if (context.mounted) Navigator.pop(context);
+                              if (context.mounted) {
+                                Navigator.pop(context, saved);
+                              }
                             } catch (error) {
                               _showError(error);
                             }
@@ -528,6 +527,11 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
     );
 
     weightController.dispose();
+    if (!mounted || savedAsset == null) return;
+    setState(() {
+      silverWeight = savedAsset.weight;
+      silverGramPrice = savedAsset.pricePerGram;
+    });
   }
 
   Future<void> _showFundForm() async {
@@ -535,7 +539,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
     final unitsController = TextEditingController();
     final priceController = TextEditingController();
 
-    await showModalBottomSheet(
+    final savedFund = await showModalBottomSheet<FundAsset>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -599,7 +603,8 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   _SaveButton(
                     text: 'حفظ الصندوق',
-                    onPressed: nameController.text.trim().isEmpty ||
+                    onPressed:
+                        nameController.text.trim().isEmpty ||
                             units <= 0 ||
                             unitPrice <= 0
                         ? null
@@ -611,9 +616,9 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                                     units: units,
                                     unitPrice: unitPrice,
                                   );
-                              if (!mounted) return;
-                              setState(() => funds.add(saved));
-                              if (context.mounted) Navigator.pop(context);
+                              if (context.mounted) {
+                                Navigator.pop(context, saved);
+                              }
                             } catch (error) {
                               _showError(error);
                             }
@@ -630,6 +635,8 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
     nameController.dispose();
     unitsController.dispose();
     priceController.dispose();
+    if (!mounted || savedFund == null) return;
+    setState(() => funds.add(savedFund));
   }
 }
 
