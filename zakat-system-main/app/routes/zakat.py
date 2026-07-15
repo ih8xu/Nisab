@@ -1,6 +1,10 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.services import build_zakat_summary
 
 from app.zakat import (
     calculate_cash_zakat,
@@ -12,6 +16,11 @@ router = APIRouter()
 
 ALLOWED_GOLD_KARATS = [24, 22, 21, 18]
 ALLOWED_SILVER_PURITY = [999, 925, 800]
+
+
+@router.get("/{user_id}/summary")
+def zakat_summary(user_id: str, db: Session = Depends(get_db)):
+    return build_zakat_summary(db, user_id)
 
 
 @router.get("/calculate-cash")

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nisab/core/utils/app_colors.dart';
+import 'package:nisab/core/services/zakat_api_service.dart';
 
 class ChatView extends StatefulWidget {
   const ChatView({super.key});
@@ -10,6 +11,7 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   final TextEditingController controller = TextEditingController();
+  bool isSending = false;
 
   final List<Map<String, dynamic>> messages = [
     {
@@ -25,26 +27,30 @@ class _ChatViewState extends State<ChatView> {
     super.dispose();
   }
 
-  void sendMessage([String? text]) {
+  Future<void> sendMessage([String? text]) async {
     final message = (text ?? controller.text).trim();
-    if (message.isEmpty) return;
+    if (message.isEmpty || isSending) return;
 
     setState(() {
       messages.add({'text': message, 'isUser': true});
       controller.clear();
+      isSending = true;
     });
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+    try {
+      final answer = await ZakatApiService.instance.askAssistant(message);
       if (!mounted) return;
-
       setState(() {
-        messages.add({
-          'text':
-              'تم احتساب الزكاة بنسبة 2.5٪ من المبلغ الزكوي بعد تحقق بلوغ النصاب وحولان الحول. إذا كان المبلغ الزكوي 57,250 ريالاً، فإن الزكاة المستحقة هي 1,431.25 ريالاً.',
-          'isUser': false,
-        });
+        messages.add({'text': answer, 'isUser': false});
+        isSending = false;
       });
-    });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        messages.add({'text': error.toString(), 'isUser': false});
+        isSending = false;
+      });
+    }
   }
 
   @override

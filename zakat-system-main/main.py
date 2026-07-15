@@ -6,6 +6,8 @@ from app.models import Base
 
 from app.routes import ai
 from app.routes import analysis
+from app.routes import assets
+from app.routes import customer_data
 from app.routes import hawl
 from app.routes import payment
 from app.routes import prices
@@ -35,6 +37,20 @@ app.include_router(
     prices.router,
     prefix="/api/prices",
     tags=["أسعار الذهب والفضة"]
+)
+
+# البيانات المالية الوسيطة التي يعبئها النظام البنكي أو Postman
+app.include_router(
+    customer_data.router,
+    prefix="/api/customer-data",
+    tags=["البيانات المالية الوسيطة"]
+)
+
+# الأصول الزكوية الإضافية
+app.include_router(
+    assets.router,
+    prefix="/api/assets",
+    tags=["الأصول الزكوية"]
 )
 
 # الزكاة

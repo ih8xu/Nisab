@@ -32,6 +32,9 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+.venv/
+.env
+zakat-system-main/zakat.db
 
 # Symbolication related
 app.*.symbols

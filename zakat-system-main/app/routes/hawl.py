@@ -1,75 +1,49 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models import CustomerFinancialData, HawlStatus
+
 
 router = APIRouter()
-
-
-@router.post("/status")
-def save_hawl_status(
-    start_date: str,
-    is_completed: bool
-):
-    """
-    حفظ حالة الحول بشكل مبدئي.
-    صيغة التاريخ المطلوبة: يوم.شهر.سنة
-    مثال: 10.07.2026
-    """
-
-    try:
-        parsed_date = datetime.strptime(start_date, "%d.%m.%Y")
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="صيغة التاريخ غير صحيحة. استخدمي الصيغة: يوم.شهر.سنة، مثل 10.07.2026.",
-        )
-
-    return {
-        "الحالة": "نجاح",
-        "تاريخ بداية الحول": parsed_date.strftime("%d.%m.%Y"),
-        "هل اكتمل الحول": is_completed,
-        "الرسالة": "تم حفظ حالة الحول بنجاح.",
-    }
+HAWL_DAYS = 354
 
 
 @router.get("/details")
-def hawl_details(start_date: str):
-    """
-    حساب تفاصيل الحول:
-    - تاريخ البداية
-    - تاريخ اليوم
-    - تاريخ اكتمال الحول
-    - الأيام المتبقية
-    - حالة الحول
-    """
-
-    try:
-        start = datetime.strptime(start_date, "%d.%m.%Y")
-    except ValueError:
+def hawl_details(user_id: str, db: Session = Depends(get_db)):
+    hawl = db.query(HawlStatus).filter(HawlStatus.user_id == user_id).first()
+    financial_data = (
+        db.query(CustomerFinancialData)
+        .filter(CustomerFinancialData.user_id == user_id)
+        .first()
+    )
+    if hawl is None or financial_data is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="صيغة التاريخ غير صحيحة. استخدمي الصيغة: يوم.شهر.سنة، مثل 10.07.2026.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="بيانات الحول أو البيانات المالية غير موجودة لهذا المستخدم.",
         )
 
     today = datetime.today()
-    end_date = start + timedelta(days=354)
-    remaining_days = (end_date.date() - today.date()).days
-
-    if remaining_days <= 0:
-        hawl_status = "مكتمل"
-        remaining_days = 0
-        is_completed = True
-    else:
-        hawl_status = "قيد الاكتمال"
-        is_completed = False
+    end_date = hawl.start_date + timedelta(days=HAWL_DAYS)
+    remaining_days = max((end_date.date() - today.date()).days, 0)
+    is_completed = remaining_days == 0
+    zakatable_balance = (
+        financial_data.cash_amount
+        + financial_data.stocks_amount
+        + financial_data.trade_offers_amount
+    )
 
     return {
-        "الحالة": "نجاح",
-        "تاريخ بداية الحول": start.strftime("%d.%m.%Y"),
-        "تاريخ اليوم": today.strftime("%d.%m.%Y"),
-        "تاريخ اكتمال الحول": end_date.strftime("%d.%m.%Y"),
-        "الأيام المتبقية": remaining_days,
-        "هل اكتمل الحول": is_completed,
-        "حالة الحول": hawl_status,
-        "الرسالة": "تم حساب حالة الحول بنجاح.",
+        "user_id": user_id,
+        "start_date": hawl.start_date.date().isoformat(),
+        "today": today.date().isoformat(),
+        "completion_date": end_date.date().isoformat(),
+        "remaining_days": remaining_days,
+        "is_completed": is_completed,
+        "hawl_status": "completed" if is_completed else "in_progress",
+        "has_reached_nisab": financial_data.has_reached_nisab,
+        "zakatable_balance": round(zakatable_balance, 2),
+        "currency": "SAR",
     }

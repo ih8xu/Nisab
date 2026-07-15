@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nisab/core/utils/app_colors.dart';
+import 'package:nisab/core/services/zakat_api_service.dart';
 
 class PaymentMethodView extends StatefulWidget {
   const PaymentMethodView({super.key});
@@ -11,6 +12,25 @@ class PaymentMethodView extends StatefulWidget {
 
 class _PaymentMethodViewState extends State<PaymentMethodView> {
   int? selectedMethod;
+  bool isSubmitting = false;
+
+  Future<void> _confirmPayment() async {
+    final selection = selectedMethod;
+    if (selection == null) return;
+    setState(() => isSubmitting = true);
+    try {
+      await ZakatApiService.instance.pay(
+        selection == 0 ? 'zakaty' : 'self',
+      );
+      if (mounted) context.go('/payment-success');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,9 +120,9 @@ class _PaymentMethodViewState extends State<PaymentMethodView> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: selectedMethod == null
+                  onPressed: selectedMethod == null || isSubmitting
                       ? null
-                      : () => context.go('/payment-success'),
+                      : _confirmPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     disabledBackgroundColor: AppColors.card,

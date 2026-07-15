@@ -3,6 +3,7 @@ import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 import 'package:nisab/core/utils/app_strings.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nisab/core/services/zakat_api_service.dart';
 
 class IntroView extends StatefulWidget {
   const IntroView({super.key});
@@ -13,6 +14,21 @@ class IntroView extends StatefulWidget {
 
 class _IntroViewState extends State<IntroView> {
   bool isAccepted = false;
+  bool isSubmitting = false;
+
+  Future<void> _start() async {
+    setState(() => isSubmitting = true);
+    try {
+      await ZakatApiService.instance.acceptTerms();
+      if (mounted) context.go('/process');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => isSubmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +149,8 @@ class _IntroViewState extends State<IntroView> {
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton(
-                              onPressed: isAccepted
-                                  ? () {
-                                      context.go('/process');
-                                    }
+                              onPressed: isAccepted && !isSubmitting
+                                  ? _start
                                   : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,

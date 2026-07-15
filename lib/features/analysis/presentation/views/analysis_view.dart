@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 import 'package:nisab/core/utils/app_strings.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nisab/core/services/zakat_api_service.dart';
 
 class ProcessView extends StatefulWidget {
   const ProcessView({super.key});
@@ -15,35 +14,25 @@ class ProcessView extends StatefulWidget {
 
 class _ProcessViewState extends State<ProcessView> {
   int currentStep = 0;
-  late Timer stepTimer;
 
   @override
   void initState() {
     super.initState();
-
-    stepTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (!mounted) return;
-
-      if (currentStep < AppStrings.processSteps.length - 1) {
-        setState(() {
-          currentStep++;
-        });
-      } else {
-        timer.cancel();
-
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            context.go('/hawl');
-          }
-        });
-      }
-    });
+    _analyze();
   }
 
-  @override
-  void dispose() {
-    stepTimer.cancel();
-    super.dispose();
+  Future<void> _analyze() async {
+    try {
+      await ZakatApiService.instance.analyze();
+      if (!mounted) return;
+      setState(() => currentStep = AppStrings.processSteps.length - 1);
+      context.go('/hawl');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   @override

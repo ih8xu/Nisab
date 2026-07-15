@@ -4,6 +4,8 @@ import 'package:nisab/core/utils/app_assets.dart';
 import 'package:nisab/core/utils/app_colors.dart';
 import 'package:nisab/core/utils/app_strings.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nisab/core/models/zakat_models.dart';
+import 'package:nisab/core/services/zakat_api_service.dart';
 
 class OtherAssetsView extends StatefulWidget {
   const OtherAssetsView({super.key});
@@ -13,15 +15,50 @@ class OtherAssetsView extends StatefulWidget {
 }
 
 class _OtherAssetsViewState extends State<OtherAssetsView> {
-  // أسعار تجريبية، تُربط لاحقًا بمصدر أسعار حقيقي.
-  static const double goldGramPrice24 = 310;
-  static const double silverGramPrice = 3.5;
+  double goldGramPrice24 = 0;
+  double silverGramPrice = 0;
 
   int selectedCarat = 21;
   double goldWeight = 0;
   double silverWeight = 0;
 
-  final List<_FundItem> funds = [];
+  final List<FundAsset> funds = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAssets();
+  }
+
+  Future<void> _loadAssets() async {
+    try {
+      final data = await ZakatApiService.instance.getAssets();
+      if (!mounted) return;
+      setState(() {
+        goldGramPrice24 = data.goldPrice24;
+        silverGramPrice = data.silverPrice999;
+        final gold = data.gold;
+        if (gold != null) {
+          selectedCarat = gold.karat ?? selectedCarat;
+          goldWeight = gold.weight;
+        }
+        final silver = data.silver;
+        if (silver != null) silverWeight = silver.weight;
+        funds
+          ..clear()
+          ..addAll(data.funds);
+      });
+    } catch (error) {
+      _showError(error);
+    }
+  }
+
+  void _showError(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString())),
+    );
+  }
 
   double get netGoldWeight => goldWeight * selectedCarat / 24;
 
@@ -120,7 +157,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.card.withOpacity(.6),
+                        color: AppColors.card.withValues(alpha: .6),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -354,7 +391,7 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
                       decoration: BoxDecoration(
                         color: isBelowNisab
                             ? Colors.white10
-                            : AppColors.success.withOpacity(.2),
+                            : AppColors.success.withValues(alpha: .2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -374,13 +411,26 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   _SaveButton(
                     text: 'حفظ الذهب',
-                    onPressed: () {
-                      setState(() {
-                        selectedCarat = temporaryCarat;
-                        goldWeight = enteredWeight;
-                      });
-                      Navigator.pop(context);
-                    },
+                    onPressed: enteredWeight <= 0
+                        ? null
+                        : () async {
+                            try {
+                              final saved = await ZakatApiService.instance
+                                  .saveGold(
+                                    weight: enteredWeight,
+                                    karat: temporaryCarat,
+                                  );
+                              if (!mounted) return;
+                              setState(() {
+                                selectedCarat = saved.karat ?? temporaryCarat;
+                                goldWeight = saved.weight;
+                                goldGramPrice24 = saved.pricePerGram;
+                              });
+                              if (context.mounted) Navigator.pop(context);
+                            } catch (error) {
+                              _showError(error);
+                            }
+                          },
                   ),
                 ],
               ),
@@ -452,12 +502,22 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   _SaveButton(
                     text: 'حفظ الفضة',
-                    onPressed: () {
-                      setState(() {
-                        silverWeight = enteredWeight;
-                      });
-                      Navigator.pop(context);
-                    },
+                    onPressed: enteredWeight <= 0
+                        ? null
+                        : () async {
+                            try {
+                              final saved = await ZakatApiService.instance
+                                  .saveSilver(weight: enteredWeight);
+                              if (!mounted) return;
+                              setState(() {
+                                silverWeight = saved.weight;
+                                silverGramPrice = saved.pricePerGram;
+                              });
+                              if (context.mounted) Navigator.pop(context);
+                            } catch (error) {
+                              _showError(error);
+                            }
+                          },
                   ),
                 ],
               ),
@@ -539,19 +599,24 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
 
                   _SaveButton(
                     text: 'حفظ الصندوق',
-                    onPressed: nameController.text.trim().isEmpty
+                    onPressed: nameController.text.trim().isEmpty ||
+                            units <= 0 ||
+                            unitPrice <= 0
                         ? null
-                        : () {
-                            setState(() {
-                              funds.add(
-                                _FundItem(
-                                  name: nameController.text.trim(),
-                                  units: units,
-                                  unitPrice: unitPrice,
-                                ),
-                              );
-                            });
-                            Navigator.pop(context);
+                        : () async {
+                            try {
+                              final saved = await ZakatApiService.instance
+                                  .addFund(
+                                    name: nameController.text.trim(),
+                                    units: units,
+                                    unitPrice: unitPrice,
+                                  );
+                              if (!mounted) return;
+                              setState(() => funds.add(saved));
+                              if (context.mounted) Navigator.pop(context);
+                            } catch (error) {
+                              _showError(error);
+                            }
                           },
                   ),
                 ],
@@ -566,20 +631,6 @@ class _OtherAssetsViewState extends State<OtherAssetsView> {
     unitsController.dispose();
     priceController.dispose();
   }
-}
-
-class _FundItem {
-  const _FundItem({
-    required this.name,
-    required this.units,
-    required this.unitPrice,
-  });
-
-  final String name;
-  final double units;
-  final double unitPrice;
-
-  double get totalValue => units * unitPrice;
 }
 
 class _AssetCard extends StatelessWidget {
@@ -615,7 +666,7 @@ class _AssetCard extends StatelessWidget {
               width: 47,
               height: 47,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(.18),
+                color: AppColors.primary.withValues(alpha: .18),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: AppColors.primary),
